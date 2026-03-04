@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="FlightLog 182"/>
+<title>FlightLog 182</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--bg:#080C18;--panel:#0D1220;--card:#121929;--border:#1C2A44;--accent:#38BDF8;--green:#34D399;--yellow:#FBBF24;--red:#F87171;--purple:#C4B5FD;--text:#E2E8F0;--muted:#4B6380;--dim:#192236;}
+body{background:var(--bg);color:var(--text);font-family:monospace;min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:72px;overflow-x:hidden;}
+#hdr{background:var(--panel);border-bottom:1px solid var(--border);padding:12px 16px;position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;}
+#hdr-title{font-size:15px;font-weight:900;color:var(--accent);letter-spacing:2px;}
+#hdr-sub{font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+#hdr-right{display:flex;align-items:center;}#hdr-right>*{margin-left:6px;}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;}
+.sdot.ok{background:var(--green);}.sdot.busy{background:var(--yellow);}.sdot.err{background:var(--red);}
+.badge{border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;}
+.bovr{background:var(--red);color:#000;}.bwrn{background:var(--yellow);color:#000;}
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--panel);border-top:1px solid var(--border);display:flex;z-index:50;}
+.nb{flex:1;background:none;border:none;color:var(--muted);padding:10px 2px 8px;font-size:8px;font-family:monospace;letter-spacing:.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;text-transform:uppercase;}
+.nb.on{color:var(--accent);}.nb .ic{font-size:18px;margin-bottom:3px;}
+.tab{padding:12px 12px 0;display:none;}.tab.on{display:block;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+.sec{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:5px;margin-bottom:10px;}
+.btn{border:none;border-radius:8px;padding:10px 16px;font-weight:700;font-family:monospace;font-size:12px;cursor:pointer;letter-spacing:1px;width:100%;display:block;text-align:center;margin-bottom:8px;}
+.ba{background:var(--accent);color:#000;}.bg{background:var(--green);color:#000;}.bm{background:var(--dim);color:var(--muted);border:1px solid var(--border);}
+.bp{background:var(--purple);color:#000;}.bsm{padding:5px 12px;font-size:11px;width:auto;display:inline-block;margin-bottom:0;}
+.fld{margin-bottom:12px;}
+.fld label{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:4px;}
+.fld input,.fld textarea,.fld select{background:var(--dim);border:1px solid var(--border);border-radius:7px;padding:9px 11px;color:var(--text);font-size:13px;font-family:monospace;width:100%;}
+.fld textarea{min-height:65px;resize:vertical;}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.ibox{background:var(--dim);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:12px;}
+.ovl{position:fixed;top:0;right:0;bottom:0;left:0;background:#000c;z-index:200;display:none;align-items:flex-end;}
+.ovl.on{display:flex;}
+.sht{background:var(--panel);width:100%;max-width:480px;margin:0 auto;border-radius:18px 18px 0 0;padding:22px 18px 32px;max-height:88vh;overflow-y:auto;border-top:1px solid var(--border);}
+.sht-title{font-size:15px;font-weight:900;color:var(--accent);letter-spacing:2px;margin-bottom:16px;}
+.mact{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;}
+.mact .btn{margin-bottom:0;}
+#abanner{background:linear-gradient(145deg,#0A1628,#0F2040);border:1px solid #1C3560;border-radius:12px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden;}
+#abanner::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:#38BDF820;border-radius:50%;}
+#b-reg{font-size:24px;font-weight:900;color:var(--accent);letter-spacing:3px;}
+#b-model{font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:3px;}
+.hgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:14px;}
+.hcell{text-align:center;background:#0A1628;border-radius:8px;padding:9px 4px;border:1px solid var(--border);}
+.hval{font-size:18px;font-weight:900;color:var(--accent);}
+.hlbl{font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px;text-transform:uppercase;}
+.mxi{background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:9px;border-left:3px solid var(--green);cursor:pointer;}
+.mxi-cat{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.mxi-name{font-size:13px;font-weight:700;margin-top:2px;}
+.mxi-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.mxi-due{font-size:14px;font-weight:900;text-align:right;}
+.mxi-last{font-size:10px;color:var(--muted);margin-top:7px;}
+.mxi-row{display:flex;justify-content:space-between;align-items:flex-start;}
+.pbar{background:var(--dim);border-radius:3px;height:5px;overflow:hidden;margin-top:7px;}
+.pfill{height:100%;border-radius:3px;}
+.pills{display:flex;overflow-x:auto;margin-bottom:12px;padding-bottom:3px;}
+.pill{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-family:monospace;color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:1px;margin-right:7px;}
+.pill.on{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700;}
+.itabs{display:flex;margin-bottom:12px;overflow-x:auto;}
+.itab{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:11px;font-family:monospace;color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:1px;margin-right:6px;}
+.itab.on{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700;}
+.ipanel{display:none;}.ipanel.on{display:block;}
+.alrt{border-radius:10px;padding:11px 14px;margin-bottom:9px;border-left:3px solid;}
+.alrt-r{background:#1A0808;border-color:var(--red);}.alrt-y{background:#1A1208;border-color:var(--yellow);}
+.alrt-title{font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:5px;}
+.alrt-item{font-size:11px;margin-bottom:2px;}
+.fent{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;}
+.froute{font-size:13px;font-weight:700;}.fdate{font-size:11px;color:var(--muted);margin-top:2px;}
+.ftach{font-size:15px;font-weight:900;color:var(--accent);text-align:right;}
+.tach-big{background:var(--dim);border:2px solid var(--accent);border-radius:10px;padding:14px;color:var(--accent);font-size:28px;font-weight:900;font-family:monospace;width:100%;text-align:center;margin-bottom:16px;letter-spacing:3px;}
+.land-icon{font-size:48px;text-align:center;margin-bottom:8px;}
+.land-title{font-size:17px;font-weight:900;color:var(--accent);text-align:center;letter-spacing:2px;margin-bottom:5px;}
+.land-sub{font-size:11px;color:var(--muted);text-align:center;margin-bottom:20px;}
+.erow{display:grid;grid-template-columns:2fr 2fr 1fr;gap:6px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;align-items:center;}
+.erow:last-child{border-bottom:none;}.ehdr{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.spill{border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;text-align:center;}
+.s-inst{background:#1A3025;color:var(--green);border:1px solid var(--green);}
+.s-miss{background:#1A0808;color:var(--red);border:1px solid var(--red);}
+.s-def{background:#1A1208;color:var(--yellow);border:1px solid var(--yellow);}
+.exprow{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:11px 14px;margin-bottom:8px;}
+.expamt{font-size:16px;font-weight:900;color:var(--green);}
+.explbl{font-size:12px;font-weight:700;}.expmeta{font-size:11px;color:var(--muted);margin-top:2px;}
+.oilchart{display:flex;align-items:flex-end;height:55px;padding:0 4px;}
+.oilbar{flex:1;background:var(--accent);border-radius:3px 3px 0 0;min-height:4px;margin-right:4px;}
+.expcrd{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.expcrd-t{font-size:13px;font-weight:700;}.expcrd-s{font-size:11px;color:var(--muted);margin-top:2px;}
+.doccard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 14px;margin-bottom:8px;}
+.doctitle{font-size:13px;font-weight:700;margin-bottom:3px;}.docmeta{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.docnotes{font-size:11px;color:var(--text);line-height:1.6;margin-bottom:8px;}
+.catbadge{display:inline-block;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;margin-bottom:6px;}
+.cb-ann{background:#1A2A10;color:#86EFAC;border:1px solid #86EFAC40;}
+.cb-eng{background:#1A1A0A;color:#FDE68A;border:1px solid #FDE68A40;}
+.cb-prp{background:#0A1A2A;color:#7DD3FC;border:1px solid #7DD3FC40;}
+.cb-afr{background:#1A0A2A;color:#C4B5FD;border:1px solid #C4B5FD40;}
+.cb-oil{background:#0A1A1A;color:#5EEAD4;border:1px solid #5EEAD440;}
+.cb-rec{background:#1A0A0A;color:#FCA5A5;border:1px solid #FCA5A540;}
+.docact{display:flex;align-items:center;flex-wrap:wrap;}
+.doclink{background:var(--accent);color:#000;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:monospace;text-decoration:none;display:inline-block;}
+.doclink-dis{background:var(--dim);color:var(--muted);}
+.deledit{background:none;border:none;font-size:10px;cursor:pointer;font-family:monospace;margin-right:8px;}
+.sguide{background:linear-gradient(135deg,#0A1628,#0F2040);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;}
+.sguide-t{font-size:11px;color:var(--accent);letter-spacing:2px;font-weight:700;margin-bottom:8px;}
+.sstep{display:flex;margin-bottom:8px;font-size:12px;color:var(--muted);line-height:1.6;}
+.snum{background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;min-width:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-right:10px;}
+.syncbar{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;font-size:11px;color:var(--muted);}
+.editbtn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--muted);font-size:10px;font-family:monospace;cursor:pointer;}
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);border-radius:24px;padding:9px 22px;font-weight:700;font-size:12px;z-index:999;white-space:nowrap;opacity:0;transition:all .3s;font-family:monospace;}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div><div id="hdr-title">&#9992; FLIGHTLOG 182</div><div id="hdr-sub">PART 91 &middot; LOADING...</div></div>
+  <div id="hdr-right">
+    <span id="sdot" class="sdot"></span>
+    <span id="bovr" class="badge bovr" style="display:none"></span>
+    <span id="bwrn" class="badge bwrn" style="display:none"></span>
+  </div>
+</div>
+
+<div id="tab-dash" class="tab on">
+  <div id="abanner">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><div id="b-reg">N-XXXX</div><div id="b-model">1968 CESSNA 182L</div></div>
+      <button class="editbtn" onclick="openSettings()">EDIT</button>
+    </div>
+    <div class="hgrid">
+      <div class="hcell"><div class="hval" id="b-tt">0.0</div><div class="hlbl">Airframe</div></div>
+      <div class="hcell"><div class="hval" id="b-et">0.0</div><div class="hlbl">Engine</div></div>
+      <div class="hcell"><div class="hval" id="b-pt">0.0</div><div class="hlbl">Prop</div></div>
+    </div>
+  </div>
+  <div id="syncbar-wrap"></div>
+  <div id="dash-ovr"></div><div id="dash-wrn"></div>
+  <button class="btn ba" style="font-size:14px;padding:13px" onclick="openFlightModal()">+ LOG FLIGHT</button>
+  <div class="sec">RECENT FLIGHTS</div>
+  <div id="dash-flights"></div>
+</div>
+
+<div id="tab-mx" class="tab">
+  <div class="pills" id="mx-pills"></div>
+  <div id="mx-list"></div>
+</div>
+
+<div id="tab-equip" class="tab">
+  <div class="itabs">
+    <div class="itab on" id="etab-req" onclick="setETab('req')">REQUIRED LIST</div>
+    <div class="itab" id="etab-inst" onclick="setETab('inst')">ON BOARD</div>
+  </div>
+  <div class="ipanel on" id="epanel-req"></div>
+  <div class="ipanel" id="epanel-inst"></div>
+</div>
+
+<div id="tab-logs" class="tab">
+  <div class="itabs">
+    <div class="itab on" id="ltab-oil" onclick="setLTab('oil')">OIL</div>
+    <div class="itab" id="ltab-exp" onclick="setLTab('exp')">EXPENSES</div>
+    <div class="itab" id="ltab-hist" onclick="setLTab('hist')">MX HISTORY</div>
+    <div class="itab" id="ltab-xport" onclick="setLTab('xport')">EXPORT</div>
+  </div>
+  <div class="ipanel on" id="lpanel-oil"></div>
+  <div class="ipanel" id="lpanel-exp"></div>
+  <div class="ipanel" id="lpanel-hist"></div>
+  <div class="ipanel" id="lpanel-xport"></div>
+</div>
+
+<div id="tab-docs" class="tab">
+  <div class="sguide">
+    <div class="sguide-t">HOW TO SCAN &amp; ATTACH</div>
+    <div class="sstep"><div class="snum">1</div><div>Open Google Drive below &rarr; tap <b>+</b> &rarr; tap <b>Scan</b> &rarr; scan with camera.</div></div>
+    <div class="sstep"><div class="snum">2</div><div>Open scan in Drive &rarr; tap <b>&#8942;</b> &rarr; Share &rarr; Copy link.</div></div>
+    <div class="sstep"><div class="snum">3</div><div>Tap Add Document, paste the link, fill in details, save.</div></div>
+    <a href="https://drive.google.com" target="_blank" class="btn bg" style="text-decoration:none;margin-top:8px;">OPEN GOOGLE DRIVE &rarr;</a>
+  </div>
+  <button class="btn ba" style="margin-bottom:12px" onclick="openDocModal()">+ ADD DOCUMENT</button>
+  <div class="pills" id="doc-pills"></div>
+  <div id="doc-list"></div>
+</div>
+
+<div id="nav">
+  <button class="nb on" id="nb-dash" onclick="goTab('dash')"><span class="ic">&#127968;</span>HOME</button>
+  <button class="nb" id="nb-mx" onclick="goTab('mx')"><span class="ic">&#128295;</span>MX DUE</button>
+  <button class="nb" id="nb-equip" onclick="goTab('equip')"><span class="ic">&#128203;</span>EQUIP</button>
+  <button class="nb" id="nb-logs" onclick="goTab('logs')"><span class="ic">&#128202;</span>LOGS</button>
+  <button class="nb" id="nb-docs" onclick="goTab('docs')"><span class="ic">&#128196;</span>DOCS</button>
+</div>
+
+<div id="toast"></div>
+
+<!-- MODALS -->
+<div class="ovl" id="m-land"><div class="sht">
+  <div class="land-icon">&#128771;</div>
+  <div class="land-title">WELCOME BACK</div>
+  <div class="land-sub">LANDING DETECTED &mdash; ENTER TACH TIME</div>
+  <input class="tach-big" type="number" step="0.1" id="land-tach" placeholder="0000.0"/>
+  <div class="mact"><button class="btn bg" onclick="saveLanding()">LOG TACH</button><button class="btn bm" onclick="closeModal('m-land')">SKIP</button></div>
+</div></div>
+
+<div class="ovl" id="m-flight" onclick="bgClose(event,'m-flight')"><div class="sht">
+  <div class="sht-title">LOG FLIGHT</div>
+  <div class="r2">
+    <div class="fld"><label>From (ICAO)</label><input type="text" id="ff-from" placeholder="KSEA" style="text-transform:uppercase"/></div>
+    <div class="fld"><label>To (ICAO)</label><input type="text" id="ff-to" placeholder="KBFI" style="text-transform:uppercase"/></div>
+  </div>
+  <div class="fld"><label>Date</label><input type="date" id="ff-date"/></div>
+  <div class="fld"><label>Tach at Landing (hrs)</label><input type="number" step="0.1" id="ff-tach" placeholder="e.g. 3421.4"/></div>
+  <div class="fld"><label>Notes</label><input type="text" id="ff-notes" placeholder="Optional"/></div>
+  <div class="mact"><button class="btn bg" onclick="saveFlight()">SAVE</button><button class="btn bm" onclick="closeModal('m-flight')">CANCEL</button></div>
+</div></div>
+
+<div class="ovl" id="m-mx" onclick="bgClose(event,'m-mx')"><div class="sht">
+  <div class="sht-title" id="mx-mtitle">LOG MAINTENANCE</div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:14px" id="mx-mdesc"></div>
+  <div class="fld"><label>Date Completed</label><input type="date" id="mx-mdate"/></div>
+  <div class="fld"><label>Tach Time (hrs)</label><input type="number" step="0.1" id="mx-mtach"/></div>
+  <div class="fld"><label>A&amp;P / IA / Facility</label><input type="text" id="mx-map" placeholder="Name, cert #"/></div>
+  <div class="fld"><label>Work Performed / Notes</label><textarea id="mx-mnotes"></textarea></div>
+  <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+    <div style="font-size:10px;color:var(--purple);letter-spacing:2px;margin-bottom:10px;">EXPENSE (OPTIONAL)</div>
+    <div class="r2">
+      <div class="fld"><label>Parts ($)</label><input type="number" step="0.01" id="mx-mparts" placeholder="0.00"/></div>
+      <div class="fld"><label>Labor ($)</label><input type="number" step="0.01" id="mx-mlabor" placeholder="0.00"/></div>
+    </div>
+    <div class="fld"><label>Vendor / Shop</label><input type="text" id="mx-mvendor"/></div>
+  </div>
+  <div class="mact"><button class="btn bg" onclick="saveMx()">SAVE</button><button class="btn bm" onclick="closeModal('m-mx')">CANCEL</button></div>
+</div></div>
+
+<div class="ovl" id="m-oil" onclick="bgClose(event,'m-oil')"><div class="sht">
+  <div class="sht-title">OIL ANALYSIS</div>
+  <div class="fld"><label>Sample Date</label><input type="date" id="oil-date"/></div>
+  <div class="fld"><label>Tach at Sample (hrs)</label><input type="number" step="0.1" id="oil-tach"/></div>
+  <div class="fld"><label>Results / Notes</label><textarea id="oil-notes" placeholder="Fe: 42&#10;Cu: 5&#10;Lab: Blackstone"></textarea></div>
+  <div class="mact"><button class="btn bg" onclick="saveOil()">SAVE</button><button class="btn bm" onclick="closeModal('m-oil')">CANCEL</button></div>
+</div></div>
+
+<div class="ovl" id="m-equip" onclick="bgClose(event,'m-equip')"><div class="sht">
+  <div class="sht-title">ADD EQUIPMENT</div>
+  <div class="fld"><label>Item Name</label><input type="text" id="eq-name" placeholder="e.g. Garmin GTX 345"/></div>
+  <div class="fld"><label>Part Number</label><input type="text" id="eq-part" placeholder="Optional"/></div>
+  <div class="fld"><label>Serial Number</label><input type="text" id="eq-serial" placeholder="Optional"/></div>
+  <div class="fld"><label>Location</label><input type="text" id="eq-loc" placeholder="e.g. Panel center"/></div>
+  <div class="fld"><label>Status</label><select id="eq-status"><option value="installed">Installed</option><option value="deferred">Deferred (MEL)</option><option value="missing">Missing</option></select></div>
+  <div class="fld"><label>Category</label><select id="eq-cat"><option value="VFR Required">VFR Required</option><option value="IFR Required">IFR Required</option><option value="Night Required">Night Required</option><option value="Avionics">Avionics / Nav</option><option value="Safety">Safety Equipment</option><option value="Other">Other</option></select></div>
+  <div class="fld"><label>Notes</label><input type="text" id="eq-notes" placeholder="Install date, STC #"/></div>
+  <div class="mact"><button class="btn bg" onclick="saveEquip()">SAVE</button><button class="btn bm" onclick="closeModal('m-equip')">CANCEL</button></div>
+</div></div>
+
+<div class="ovl" id="m-expense" onclick="bgClose(event,'m-expense')"><div class="sht">
+  <div class="sht-title">ADD EXPENSE</div>
+  <div class="ibox">Parts and labor only &mdash; no fuel or oil consumables.</div>
+  <div class="fld"><label>Date</label><input type="date" id="exp-date"/></div>
+  <div class="fld"><label>Description</label><input type="text" id="exp-desc" placeholder="e.g. Stall warning switch"/></div>
+  <div class="fld"><label>Category</label><select id="exp-cat"><option value="Annual">Annual Inspection</option><option value="100hr">100-hr Inspection</option><option value="Repair">Unscheduled Repair</option><option value="Overhaul">Overhaul / Rebuild</option><option value="Avionics">Avionics</option><option value="Parts">Parts</option><option value="Labor">Labor Only</option><option value="Other">Other</option></select></div>
+  <div class="fld"><label>Logbook Section</label><select id="exp-section"><option value="Airframe">Airframe</option><option value="Engine">Engine</option><option value="Propeller">Propeller</option><option value="Avionics">Avionics</option></select></div>
+  <div class="r2">
+    <div class="fld"><label>Parts ($)</label><input type="number" step="0.01" id="exp-parts" placeholder="0.00"/></div>
+    <div class="fld"><label>Labor ($)</label><input type="number" step="0.01" id="exp-labor" placeholder="0.00"/></div>
+  </div>
+  <div class="fld"><label>Vendor / A&amp;P</label><input type="text" id="exp-vendor"/></div>
+  <div class="fld"><label>Tach (hrs)</label><input type="number" step="0.1" id="exp-tach"/></div>
+  <div class="fld"><label>Notes</label><textarea id="exp-notes" placeholder="Invoice #, part numbers..."></textarea></div>
+  <div class="mact"><button class="btn bg" onclick="saveExpense()">SAVE</button><button class="btn bm" onclick="closeModal('m-expense')">CANCEL</button></div>
+</div></div>
+
+<div class="ovl" id="m-doc" onclick="bgClose(event,'m-doc')"><div class="sht">
+  <div class="sht-title" id="doc-mtitle">ADD DOCUMENT</div>
+  <div class="fld"><label>Title</label><input type="text" id="doc-title" placeholder="e.g. 2024 Annual Inspection"/></div>
+  <div class="fld"><label>Category</label><select id="doc-cat"><option value="Annual">Annual Inspection Signoffs</option><option value="Engine">Engine Logbook / 337s</option><option value="Propeller">Prop / Overhaul Records</option><option value="Airframe">Airframe STCs / 337s</option><option value="Oil Analysis">Oil Analysis Lab Reports</option><option value="Receipts">Receipts &amp; Invoices</option></select></div>
+  <div class="fld"><label>Date</label><input type="date" id="doc-date"/></div>
+  <div class="fld"><label>Google Drive Link</label><input type="url" id="doc-url" placeholder="Paste sharing link from Drive"/></div>
+  <div class="fld"><label>Tach (if applicable)</label><input type="number" step="0.1" id="doc-tach" placeholder="Optional"/></div>
+  <div class="fld"><label>Notes</label><textarea id="doc-notes" placeholder="A&amp;P name, work order #..."></textarea></div>
+  <div class="mact"><button class="btn bg" onclick="saveDoc()">SAVE</button><button class="btn bm" onclick="closeModal('m-doc')">CANCEL</button></div>
+</div></div>
+
+<div class="ovl" id="m-settings" onclick="bgClose(event,'m-settings')"><div class="sht">
+  <div class="sht-title">AIRCRAFT SETUP</div>
+  <div class="fld"><label>N-Number</label><input type="text" id="s-reg" placeholder="N12345" style="text-transform:uppercase"/></div>
+  <div class="r2">
+    <div class="fld"><label>Year</label><input type="text" id="s-year" placeholder="1968"/></div>
+    <div class="fld"><label>Model</label><input type="text" id="s-model" placeholder="182L"/></div>
+  </div>
+  <div class="fld"><label>Airframe Serial #</label><input type="text" id="s-serial"/></div>
+  <div class="r2">
+    <div class="fld"><label>Engine Serial #</label><input type="text" id="s-engser"/></div>
+    <div class="fld"><label>Prop Serial #</label><input type="text" id="s-propser"/></div>
+  </div>
+  <div class="ibox">Set starting hours ONCE from your paper logbook.</div>
+  <div class="r3">
+    <div class="fld"><label>Airframe TT</label><input type="number" step="0.1" id="s-tt"/></div>
+    <div class="fld"><label>Engine SMOH</label><input type="number" step="0.1" id="s-et"/></div>
+    <div class="fld"><label>Prop SPOH</label><input type="number" step="0.1" id="s-pt"/></div>
+  </div>
+  <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+    <div style="font-size:11px;color:var(--green);letter-spacing:2px;font-weight:700;margin-bottom:12px;">CLOUD SYNC (JSONBIN.IO)</div>
+    <div class="fld"><label>API Key</label><input type="password" id="s-apikey" placeholder="$2a$10$..."/></div>
+    <div class="fld"><label>Bin ID</label><input type="text" id="s-binid" placeholder="auto-filled after first save"/></div>
+    <div class="ibox" style="font-size:10px;">Free at jsonbin.io. Enter same key + Bin ID on both devices.</div>
+  </div>
+  <div class="mact"><button class="btn bg" onclick="saveSettings()">SAVE</button><button class="btn bm" onclick="closeModal('m-settings')">CANCEL</button></div>
+</div></div>
+
+<script>window.onerror = function(msg, src, line, col, err) {
+  var d = document.getElementById('hdr-sub');
+  if(d) d.textContent = 'JS ERROR: ' + msg + ' (line ' + line + ')';
+  return false;
+};
+
+var MXI=[
+  {id:"oil_change",cat:"ENGINE",name:"Oil Change",hrs:50,days:0,desc:"Change engine oil & filter"},
+  {id:"oil_filter",cat:"ENGINE",name:"Oil Filter Replacement",hrs:50,days:0,desc:"Replace oil filter at each oil change"},
+  {id:"spark_ins",cat:"ENGINE",name:"Spark Plugs - Inspect/Rotate",hrs:100,days:0,desc:"Inspect, clean, gap check, rotate all plugs"},
+  {id:"compress",cat:"ENGINE",name:"Compression Check",hrs:100,days:0,desc:"Differential compression all 6 cylinders"},
+  {id:"fuel_noz",cat:"ENGINE",name:"Fuel Injector Nozzles",hrs:100,days:0,desc:"Clean & inspect Continental fuel nozzles"},
+  {id:"mag_time",cat:"ENGINE",name:"Magneto Timing Check",hrs:500,days:0,desc:"Verify and set magneto timing"},
+  {id:"mag_ovhl",cat:"ENGINE",name:"Magneto 500-hr Inspection",hrs:500,days:0,desc:"Slick magneto inspection per manufacturer SB"},
+  {id:"spark_rep",cat:"ENGINE",name:"Spark Plugs - Replace All",hrs:500,days:0,desc:"Replace all 12 spark plugs"},
+  {id:"eng_tbo",cat:"ENGINE",name:"Engine TBO - O-470",hrs:2000,days:0,desc:"Continental O-470 TBO - major overhaul"},
+  {id:"annual",cat:"AIRFRAME",name:"Annual Inspection (91.409)",hrs:0,days:365,desc:"Required annual by A&P/IA - logbook entry required"},
+  {id:"xpdr",cat:"AIRFRAME",name:"Transponder Test (91.413)",hrs:0,days:730,desc:"24-month transponder inspection & test"},
+  {id:"pitot",cat:"AIRFRAME",name:"Pitot-Static/Altimeter (91.411)",hrs:0,days:730,desc:"IFR: 24-month altimeter/encoder/pitot-static"},
+  {id:"vor",cat:"AIRFRAME",name:"VOR Check (91.171)",hrs:0,days:30,desc:"IFR: VOR accuracy check, log required"},
+  {id:"elt_bat",cat:"AIRFRAME",name:"ELT Battery (91.207)",hrs:0,days:365,desc:"Replace per mfr schedule or 1 hr cumulative use"},
+  {id:"elt_ins",cat:"AIRFRAME",name:"ELT Inspection (91.207d)",hrs:0,days:365,desc:"Annual ELT operation/condition check"},
+  {id:"brakes",cat:"AIRFRAME",name:"Brake System Inspection",hrs:100,days:0,desc:"Pads, discs, fluid, lines, parking brake"},
+  {id:"gear",cat:"AIRFRAME",name:"Landing Gear / Struts / Tires",hrs:0,days:365,desc:"Strut servicing, tire condition, wheel bearings"},
+  {id:"cables",cat:"AIRFRAME",name:"Flight Control Cables",hrs:0,days:365,desc:"Inspect cables, pulleys, fairleads, turnbuckles"},
+  {id:"belts",cat:"AIRFRAME",name:"Seat Belts & Harnesses",hrs:0,days:365,desc:"Inspect belts, hardware, floor attachments"},
+  {id:"prop_ins",cat:"PROPELLER",name:"Propeller Annual Inspection",hrs:0,days:365,desc:"Blade condition, hub, spinner, pitch change"},
+  {id:"prop_tbo",cat:"PROPELLER",name:"Propeller TBO",hrs:2400,days:0,desc:"McCauley/Hartzell TBO overhaul"},
+  {id:"prop_gov",cat:"PROPELLER",name:"Prop Governor Inspection",hrs:0,days:365,desc:"Inspect governor, controls, oil lines"},
+  {id:"prop_bal",cat:"PROPELLER",name:"Dynamic Propeller Balance",hrs:0,days:365,desc:"Recommended annual dynamic balance check"},
+  {id:"adsb",cat:"AVIONICS",name:"ADS-B Out Verification (91.227)",hrs:0,days:365,desc:"Verify ADS-B out performance & squawk"}
+];
+var MX_CATS=["ALL","ENGINE","AIRFRAME","PROPELLER","AVIONICS"];
+var REQ_EQUIP=[
+  {id:"r1",name:"Airspeed Indicator",reg:"91.205(b)(1)",cat:"VFR Required"},
+  {id:"r2",name:"Altimeter",reg:"91.205(b)(2)",cat:"VFR Required"},
+  {id:"r3",name:"Magnetic Compass",reg:"91.205(b)(3)",cat:"VFR Required"},
+  {id:"r4",name:"Tachometer",reg:"91.205(b)(4)",cat:"VFR Required"},
+  {id:"r5",name:"Oil Pressure Gauge",reg:"91.205(b)(5)",cat:"VFR Required"},
+  {id:"r6",name:"Oil Temperature Gauge",reg:"91.205(b)(7)",cat:"VFR Required"},
+  {id:"r7",name:"Manifold Pressure Gauge",reg:"91.205(b)(8)",cat:"VFR Required"},
+  {id:"r8",name:"Fuel Gauge (each tank)",reg:"91.205(b)(9)",cat:"VFR Required"},
+  {id:"r9",name:"Safety Belts / Harness",reg:"91.205(b)(12)",cat:"VFR Required"},
+  {id:"r10",name:"ELT",reg:"91.207",cat:"VFR Required"},
+  {id:"r11",name:"Anti-collision Lights",reg:"91.205(b)(13)",cat:"VFR Required"},
+  {id:"r12",name:"Position / Nav Lights",reg:"91.205(c)(1)",cat:"Night Required"},
+  {id:"r13",name:"Spare Fuses",reg:"91.205(c)(4)",cat:"Night Required"},
+  {id:"r14",name:"Attitude Indicator",reg:"91.205(d)(1)",cat:"IFR Required"},
+  {id:"r15",name:"Rate-of-Turn Indicator",reg:"91.205(d)(2)",cat:"IFR Required"},
+  {id:"r16",name:"Slip-Skid Indicator",reg:"91.205(d)(3)",cat:"IFR Required"},
+  {id:"r17",name:"Sensitive Altimeter",reg:"91.205(d)(4)",cat:"IFR Required"},
+  {id:"r18",name:"Clock (hrs/min/sec)",reg:"91.205(d)(5)",cat:"IFR Required"},
+  {id:"r19",name:"Generator or Alternator",reg:"91.205(d)(6)",cat:"IFR Required"},
+  {id:"r20",name:"Gyroscopic Pitch & Bank",reg:"91.205(d)(7)",cat:"IFR Required"},
+  {id:"r21",name:"Directional Gyroscope",reg:"91.205(d)(8)",cat:"IFR Required"},
+  {id:"r22",name:"ADS-B Out",reg:"91.225",cat:"IFR Required"}
+];
+var DOC_CATS=[
+  {id:"All",label:"ALL",cls:""},
+  {id:"Annual",label:"ANNUAL",cls:"cb-ann"},
+  {id:"Engine",label:"ENGINE",cls:"cb-eng"},
+  {id:"Propeller",label:"PROPELLER",cls:"cb-prp"},
+  {id:"Airframe",label:"AIRFRAME",cls:"cb-afr"},
+  {id:"Oil Analysis",label:"OIL ANALYSIS",cls:"cb-oil"},
+  {id:"Receipts",label:"RECEIPTS",cls:"cb-rec"}
+];
+var D=null,KEY="fl182_v6",activeMxCat="ALL",activeDocCat="All",activeMxId=null,editDocId=null;
+var flyingState=false,landingTimer=null,syncTimer=null,toastTimer=null;
+
+function defData(){
+  return{ac:{reg:"",year:"1968",model:"182L",serial:"",engSerial:"",propSerial:""},
+    tt:0,et:0,pt:0,flights:[],mxLog:[],oil:[],lastMx:{},equipment:[],expenses:[],docs:[],
+    sync:{apiKey:"",binId:""}};
+}
+function loadLocal(){try{var s=localStorage.getItem(KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}}
+function setSyncDot(st){document.getElementById('sdot').className='sdot'+(st?' '+st:'');}
+function syncToCloud(){
+  if(!D.sync||!D.sync.apiKey)return;
+  setSyncDot('busy');
+  var payload=JSON.parse(JSON.stringify(D));
+  payload.sync={binId:D.sync.binId};
+  var h={'Content-Type':'application/json','X-Master-Key':D.sync.apiKey,'X-Bin-Private':'false'};
+  if(!D.sync.binId){
+    fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:Object.assign({},h,{'X-Bin-Name':'FlightLog182'}),body:JSON.stringify(payload)})
+    .then(function(r){return r.json();}).then(function(j){D.sync.binId=j.metadata.id;saveLocal();setSyncDot('ok');showToast('CLOUD CREATED','var(--green)');}).catch(function(){setSyncDot('err');});
+  }else{
+    fetch('https://api.jsonbin.io/v3/b/'+D.sync.binId,{method:'PUT',headers:h,body:JSON.stringify(payload)})
+    .then(function(){setSyncDot('ok');}).catch(function(){setSyncDot('err');});
+  }
+}
+function syncFromCloud(cb){
+  if(!D.sync||!D.sync.apiKey||!D.sync.binId){if(cb)cb(false);return;}
+  setSyncDot('busy');
+  fetch('https://api.jsonbin.io/v3/b/'+D.sync.binId+'/latest',{headers:{'X-Master-Key':D.sync.apiKey}})
+  .then(function(r){return r.json();}).then(function(j){
+    var c=j.record;c.sync={apiKey:D.sync.apiKey,binId:D.sync.binId};D=c;saveLocal();setSyncDot('ok');if(cb)cb(true);
+  }).catch(function(){setSyncDot('err');if(cb)cb(false);});
+}
+function save(){saveLocal();clearTimeout(syncTimer);syncTimer=setTimeout(syncToCloud,1500);}
+function fmtn(n){return parseFloat(n||0).toFixed(1);}
+function fmtm(n){return'$'+parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtd(d){
+  if(!d)return'--';
+  var p=d.split('-');
+  return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2])).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+function today(){return new Date().toISOString().slice(0,10);}
+function daysLeft(ds){
+  if(!ds)return null;
+  var p=ds.split('-');
+  var due=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+  var now=new Date();now.setHours(0,0,0,0);
+  return Math.ceil((due-now)/86400000);
+}
+function findMxi(id){for(var i=0;i<MXI.length;i++){if(MXI[i].id===id)return MXI[i];}return null;}
+function findDocCat(id){for(var i=0;i<DOC_CATS.length;i++){if(DOC_CATS[i].id===id)return DOC_CATS[i];}return{label:id,cls:''};}
+function dueStatus(item){
+  var last=D.lastMx[item.id];
+  var pct=null,dl=null,hl=null,nextDate=null,nextHrs=null;
+  if(item.hrs>0){var base=(last&&last.hrs)?last.hrs:0;var due=base+item.hrs;nextHrs=due;hl=due-D.tt;pct=Math.min(100,((item.hrs-hl)/item.hrs)*100);}
+  if(item.days>0&&last&&last.date){
+    var p=last.date.split('-');var dObj=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+    dObj.setDate(dObj.getDate()+item.days);nextDate=dObj.toISOString().slice(0,10);
+    dl=daysLeft(nextDate);if(pct===null)pct=Math.min(100,((item.days-dl)/item.days)*100);
+  }
+  var urgent=(pct!==null&&pct>=100)||(dl!==null&&dl<=0);
+  var warn=!urgent&&((pct!==null&&pct>=75)||(dl!==null&&dl<=30));
+  var color=urgent?'var(--red)':warn?'var(--yellow)':'var(--green)';
+  return{pct:pct,dl:dl,hl:hl,nextDate:nextDate,nextHrs:nextHrs,color:color,urgent:urgent,warn:warn,last:last};
+}
+var TABS=['dash','mx','equip','logs','docs'];
+function goTab(t){
+  for(var i=0;i<TABS.length;i++){
+    var tc=document.getElementById('tab-'+TABS[i]);
+    var nb=document.getElementById('nb-'+TABS[i]);
+    if(tc)tc.className='tab'+(TABS[i]===t?' on':'');
+    if(nb)nb.className='nb'+(TABS[i]===t?' on':'');
+  }
+  renderAll();
+}
+function setETab(t){
+  var ts=['req','inst'];
+  for(var i=0;i<ts.length;i++){
+    var tb=document.getElementById('etab-'+ts[i]);var pn=document.getElementById('epanel-'+ts[i]);
+    if(tb)tb.className='itab'+(ts[i]===t?' on':'');if(pn)pn.className='ipanel'+(ts[i]===t?' on':'');
+  }
+}
+function setLTab(t){
+  var ts=['oil','exp','hist','xport'];
+  for(var i=0;i<ts.length;i++){
+    var tb=document.getElementById('ltab-'+ts[i]);var pn=document.getElementById('lpanel-'+ts[i]);
+    if(tb)tb.className='itab'+(ts[i]===t?' on':'');if(pn)pn.className='ipanel'+(ts[i]===t?' on':'');
+  }
+}
+function openModal(id){document.getElementById(id).className='ovl on';}
+function closeModal(id){document.getElementById(id).className='ovl';}
+function bgClose(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+function showToast(msg,color){
+  var t=document.getElementById('toast');t.textContent=msg;t.style.background=color||'var(--green)';t.style.color='#000';
+  t.className='on';clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='';},2800);
+}
+function renderDash(){
+  var ac=D.ac;
+  document.getElementById('b-reg').textContent=ac.reg||'N-XXXX';
+  document.getElementById('b-model').textContent=(ac.year||'1968')+' CESSNA '+(ac.model||'182L');
+  document.getElementById('b-tt').textContent=fmtn(D.tt);
+  document.getElementById('b-et').textContent=fmtn(D.et);
+  document.getElementById('b-pt').textContent=fmtn(D.pt);
+  document.getElementById('hdr-sub').textContent='PART 91 \u00b7 '+(ac.reg||'N-XXXX')+' \u00b7 '+fmtn(D.tt)+' HRS TT';
+  var sb=document.getElementById('syncbar-wrap');
+  if(D.sync&&D.sync.apiKey){
+    var bin=D.sync.binId?'...'+D.sync.binId.slice(-6):'pending';
+    sb.innerHTML='<div class="syncbar"><span class="sdot ok" style="flex-shrink:0"></span><span>CLOUD SYNC \u00b7 BIN '+bin+'</span>'+
+      '<button onclick="syncFromCloud(function(ok){if(ok){renderAll();showToast(\'SYNCED\',\'var(--accent)\');}else{showToast(\'SYNC ERROR\',\'var(--red)\');}})" style="background:none;border:none;color:var(--accent);font-size:11px;font-family:monospace;cursor:pointer;margin-left:auto;">\u2193 PULL</button></div>';
+  }else{
+    sb.innerHTML='<div class="syncbar" style="border-color:#FBBF2440"><span style="color:var(--yellow)">SYNC NOT SET UP</span> &mdash; tap EDIT to add API key</div>';
+  }
+  var overdue=[],warns=[];
+  for(var i=0;i<MXI.length;i++){var s=dueStatus(MXI[i]);if(s.urgent)overdue.push(MXI[i].name);else if(s.warn)warns.push(MXI[i].name);}
+  var bo=document.getElementById('bovr'),bw=document.getElementById('bwrn');
+  if(overdue.length){bo.textContent=overdue.length+' OVR';bo.style.display='inline';}else{bo.style.display='none';}
+  if(warns.length){bw.textContent=warns.length+' DUE';bw.style.display='inline';}else{bw.style.display='none';}
+  var oEl=document.getElementById('dash-ovr'),wEl=document.getElementById('dash-wrn');
+  if(overdue.length){var h='<div class="alrt alrt-r"><div class="alrt-title" style="color:var(--red)">'+overdue.length+' OVERDUE</div>';for(var j=0;j<overdue.length;j++)h+='<div class="alrt-item" style="color:var(--red)">&bull; '+overdue[j]+'</div>';oEl.innerHTML=h+'</div>';}else oEl.innerHTML='';
+  if(warns.length){var h2='<div class="alrt alrt-y"><div class="alrt-title" style="color:var(--yellow)">'+warns.length+' DUE SOON</div>';for(var k=0;k<warns.length;k++)h2+='<div class="alrt-item" style="color:var(--yellow)">&bull; '+warns[k]+'</div>';wEl.innerHTML=h2+'</div>';}else wEl.innerHTML='';
+  var rf=document.getElementById('dash-flights'),fh='';
+  if(!D.flights.length){rf.innerHTML='<div style="color:var(--muted);text-align:center;padding:28px 0;font-size:12px">NO FLIGHTS LOGGED YET</div>';return;}
+  for(var fi=0;fi<Math.min(5,D.flights.length);fi++){var f=D.flights[fi];fh+='<div class="fent"><div><div class="froute">'+(f.from||'--')+' &rarr; '+(f.to||'--')+'</div><div class="fdate">'+fmtd(f.date)+(f.notes?' &middot; '+f.notes:'')+'</div></div><div><div class="ftach">'+fmtn(f.tach)+'</div><div style="font-size:10px;color:var(--muted);text-align:right">TACH HRS</div></div></div>';}
+  rf.innerHTML=fh;
+}
+function renderMx(){
+  var pe=document.getElementById('mx-pills');if(!pe)return;
+  var ph='';for(var i=0;i<MX_CATS.length;i++)ph+='<div class="pill'+(MX_CATS[i]===activeMxCat?' on':'')+'" onclick="setMxCat(\''+MX_CATS[i]+'\')">'+MX_CATS[i]+'</div>';
+  pe.innerHTML=ph;
+  var items=[];for(var j=0;j<MXI.length;j++){if(activeMxCat==='ALL'||MXI[j].cat===activeMxCat)items.push(MXI[j]);}
+  var mh='';
+  for(var k=0;k<items.length;k++){
+    var item=items[k],s=dueStatus(item),dt='',ds='';
+    if(s.hl!==null){dt=fmtn(s.hl)+' HRS';if(s.nextHrs)ds='@ '+fmtn(s.nextHrs)+' TT';}
+    if(s.dl!==null){dt=s.dl>=0?s.dl+'d':Math.abs(s.dl)+'d OVR';ds=s.nextDate?fmtd(s.nextDate):'';}
+    var bw=Math.min(100,s.pct!==null?s.pct:0),lt=s.last?fmtn(s.last.hrs)+' HRS \u00b7 '+fmtd(s.last.date):'NOT RECORDED';
+    mh+='<div class="mxi" style="border-left-color:'+s.color+'" onclick="openMxModal(\''+item.id+'\')">'+
+      '<div class="mxi-row"><div style="flex:1"><div class="mxi-cat">'+item.cat+'</div><div class="mxi-name">'+item.name+'</div><div class="mxi-desc">'+item.desc+'</div></div>'+
+      '<div style="min-width:85px;text-align:right"><div class="mxi-due" style="color:'+s.color+'">'+dt+'</div><div style="font-size:10px;color:var(--muted)">'+ds+'</div></div></div>'+
+      '<div class="pbar"><div class="pfill" style="width:'+bw+'%;background:'+s.color+'"></div></div>'+
+      '<div class="mxi-last">LAST: '+lt+' \u00b7 TAP TO LOG</div></div>';
+  }
+  document.getElementById('mx-list').innerHTML=mh;
+}
+function setMxCat(c){activeMxCat=c;renderMx();}
+function renderEquip(){
+  var rp=document.getElementById('epanel-req'),ip=document.getElementById('epanel-inst');if(!rp||!ip)return;
+  var rcats=['VFR Required','Night Required','IFR Required'],rh='';
+  for(var ci=0;ci<rcats.length;ci++){
+    rh+='<div class="sec">'+rcats[ci]+'</div><div class="card" style="padding:8px 12px;margin-bottom:12px">';
+    rh+='<div class="erow"><div class="ehdr">ITEM</div><div class="ehdr">REG</div><div class="ehdr">STATUS</div></div>';
+    for(var ri=0;ri<REQ_EQUIP.length;ri++){
+      var req=REQ_EQUIP[ri];if(req.cat!==rcats[ci])continue;
+      var inst=false;for(var ei=0;ei<D.equipment.length;ei++){if(D.equipment[ei].reqId===req.id){inst=true;break;}}
+      rh+='<div class="erow"><div>'+req.name+'</div><div style="font-size:10px;color:var(--muted)">'+req.reg+'</div><div><span class="spill '+(inst?'s-inst':'s-miss')+'">'+(inst?'&check;':'--')+'</span></div></div>';
+    }
+    rh+='</div>';
+  }
+  rp.innerHTML=rh;
+  var ih='<button class="btn ba" style="margin-bottom:14px" onclick="openEquipModal()">+ ADD EQUIPMENT</button>';
+  if(!D.equipment.length){ih+='<div style="color:var(--muted);text-align:center;padding:32px 0;font-size:12px">NO EQUIPMENT ITEMS YET</div>';}
+  else{
+    var cats={};for(var qi=0;qi<D.equipment.length;qi++){var e=D.equipment[qi];if(!cats[e.cat])cats[e.cat]=[];cats[e.cat].push(e);}
+    for(var ck in cats){
+      ih+='<div class="sec">'+ck+'</div>';
+      var ci2=cats[ck];
+      for(var ci3=0;ci3<ci2.length;ci3++){
+        var eq=ci2[ci3],sc=eq.status==='installed'?'s-inst':eq.status==='deferred'?'s-def':'s-miss',sl=eq.status==='installed'?'INSTALLED':eq.status==='deferred'?'DEFERRED':'MISSING';
+        ih+='<div class="card" style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+          '<div style="flex:1"><div style="font-size:13px;font-weight:700">'+eq.name+'</div>'+
+          (eq.partNum?'<div style="font-size:11px;color:var(--muted)">P/N: '+eq.partNum+'</div>':'')+
+          (eq.serialNum?'<div style="font-size:11px;color:var(--muted)">S/N: '+eq.serialNum+'</div>':'')+
+          (eq.location?'<div style="font-size:11px;color:var(--muted)">'+eq.location+'</div>':'')+
+          (eq.notes?'<div style="font-size:11px;color:var(--muted)">'+eq.notes+'</div>':'')+
+          '</div><div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px">'+
+          '<span class="spill '+sc+'">'+sl+'</span>'+
+          '<button onclick="delEquip(\''+eq.id+'\')" style="background:none;border:none;color:var(--red);font-size:10px;cursor:pointer;font-family:monospace">REMOVE</button>'+
+          '</div></div></div>';
+      }
+    }
+  }
+  ip.innerHTML=ih;
+}
+function renderOilPanel(){
+  var p=document.getElementById('lpanel-oil');if(!p)return;
+  var h='<button class="btn ba" style="margin-bottom:14px" onclick="openOilModal()">+ ADD OIL ANALYSIS</button>';
+  if(D.oil.length){
+    var vals=[],sl=D.oil.slice(0,12).reverse();
+    for(var i=0;i<sl.length;i++){var m=sl[i].notes?sl[i].notes.match(/Fe[:\s]+(\d+)/i):null;vals.push(m?parseInt(m[1]):0);}
+    var maxV=1;for(var j=0;j<vals.length;j++){if(vals[j]>maxV)maxV=vals[j];}
+    if(maxV>1){
+      h+='<div class="card" style="margin-bottom:12px"><div class="sec" style="margin-top:0">IRON (Fe) TREND &mdash; ppm</div><div class="oilchart">';
+      for(var k=0;k<vals.length;k++)h+='<div class="oilbar" style="height:'+Math.max(4,(vals[k]/maxV)*50)+'px"></div>';
+      h+='</div><div style="font-size:10px;color:var(--muted);margin-top:5px">Use "Fe: 42" in notes. Peak: '+maxV+' ppm</div></div>';
+    }
+    for(var oi=0;oi<D.oil.length;oi++){var o=D.oil[oi];h+='<div class="card"><div style="display:flex;justify-content:space-between"><div style="font-size:12px;font-weight:700;color:var(--accent)">'+fmtd(o.date)+'</div><div style="font-size:12px;color:var(--muted)">'+(o.tach?fmtn(o.tach)+' HRS':'--')+'</div></div>'+(o.notes?'<div style="font-size:12px;margin-top:7px;line-height:1.7;white-space:pre-line">'+o.notes+'</div>':'')+'</div>';}
+  }else h+='<div style="color:var(--muted);text-align:center;padding:32px 0;font-size:12px">NO OIL ANALYSIS RECORDS YET</div>';
+  p.innerHTML=h;
+}
+function renderExpPanel(){
+  var p=document.getElementById('lpanel-exp');if(!p)return;
+  var mxExp=[];
+  for(var mi=0;mi<D.mxLog.length;mi++){var mx=D.mxLog[mi];if((mx.parts||0)+(mx.labor||0)>0){var mxi=findMxi(mx.itemId);mxExp.push({id:'mx_'+mx.id,date:mx.date,desc:mxi?mxi.name:mx.itemId,cat:'Maintenance',section:mxi?mxi.cat:'',parts:mx.parts||0,labor:mx.labor||0,vendor:mx.vendor||mx.ap||'',tach:mx.tach,notes:mx.notes,isMx:true});}}
+  var allExp=D.expenses.concat(mxExp);allExp.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  var tP=0,tL=0;for(var i=0;i<allExp.length;i++){tP+=parseFloat(allExp[i].parts)||0;tL+=parseFloat(allExp[i].labor)||0;}
+  var h='<button class="btn bp" style="margin-bottom:12px" onclick="openExpenseModal()">+ ADD EXPENSE</button>';
+  if(allExp.length){
+    h+='<div class="card" style="margin-bottom:12px"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">'+
+      '<div><div style="font-size:14px;font-weight:900;color:var(--green)">'+fmtm(tP+tL)+'</div><div style="font-size:9px;color:var(--muted);margin-top:2px">TOTAL</div></div>'+
+      '<div><div style="font-size:14px;font-weight:900;color:var(--accent)">'+fmtm(tP)+'</div><div style="font-size:9px;color:var(--muted);margin-top:2px">PARTS</div></div>'+
+      '<div><div style="font-size:14px;font-weight:900;color:var(--yellow)">'+fmtm(tL)+'</div><div style="font-size:9px;color:var(--muted);margin-top:2px">LABOR</div></div></div></div>';
+    for(var ei=0;ei<allExp.length;ei++){var e=allExp[ei],tot=(parseFloat(e.parts)||0)+(parseFloat(e.labor)||0);
+      h+='<div class="exprow"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="flex:1">'+
+        '<div class="explbl">'+e.desc+'</div><div class="expmeta">'+fmtd(e.date)+(e.section?' &middot; '+e.section:'')+(e.vendor?' &middot; '+e.vendor:'')+(e.tach?' &middot; '+fmtn(e.tach)+' hrs':'')+'</div>'+
+        (e.notes?'<div style="font-size:11px;color:var(--muted);margin-top:3px">'+e.notes+'</div>':'')+
+        '</div><div style="text-align:right;margin-left:12px"><div class="expamt">'+fmtm(tot)+'</div>'+
+        '<div style="font-size:10px;color:var(--muted)">P:'+fmtm(e.parts)+' L:'+fmtm(e.labor)+'</div>'+
+        (!e.isMx?'<button onclick="delExpense(\''+e.id+'\')" style="background:none;border:none;color:var(--red);font-size:10px;cursor:pointer;font-family:monospace;margin-top:4px">REMOVE</button>':'')+
+        '</div></div></div>';
+    }
+  }else h+='<div style="color:var(--muted);text-align:center;padding:32px 0;font-size:12px">NO EXPENSES YET</div>';
+  p.innerHTML=h;
+}
+function renderHistPanel(){
+  var p=document.getElementById('lpanel-hist');if(!p)return;
+  if(!D.mxLog.length){p.innerHTML='<div style="color:var(--muted);text-align:center;padding:32px 0;font-size:12px">NO MAINTENANCE LOGGED YET</div>';return;}
+  var h='';
+  for(var i=0;i<D.mxLog.length;i++){var m=D.mxLog[i],mi=findMxi(m.itemId),hc=(m.parts||0)+(m.labor||0)>0;
+    h+='<div class="card"><div style="display:flex;justify-content:space-between"><div style="font-weight:700;font-size:13px">'+(mi?mi.name:m.itemId)+'</div><div style="font-weight:900;font-size:13px;color:var(--accent)">'+fmtn(m.tach)+'</div></div>'+
+      '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+fmtd(m.date)+(m.ap?' &middot; '+m.ap:'')+'</div>'+
+      (m.notes?'<div style="font-size:12px;margin-top:5px;line-height:1.6">'+m.notes+'</div>':'')+
+      (hc?'<div style="margin-top:7px;font-size:11px;color:var(--purple)">Parts: '+fmtm(m.parts||0)+' &middot; Labor: '+fmtm(m.labor||0)+(m.vendor?' &middot; '+m.vendor:'')+'</div>':'')+
+      '</div>';
+  }
+  p.innerHTML=h;
+}
+function renderExportPanel(){
+  var p=document.getElementById('lpanel-xport');if(!p)return;
+  p.innerHTML='<div class="sec">EXPORT TO CSV (OPENS IN EXCEL)</div>'+
+    '<div class="ibox">Each export downloads a .csv file that opens in Excel, Numbers, or Google Sheets.</div>'+
+    '<div class="expcrd"><div><div class="expcrd-t">Airframe Logbook</div><div class="expcrd-s">Flights &middot; Airframe MX &middot; Equipment</div></div><button class="btn ba bsm" onclick="doExport(\'airframe\')">EXPORT</button></div>'+
+    '<div class="expcrd"><div><div class="expcrd-t">Engine Logbook</div><div class="expcrd-s">Engine MX &middot; Oil analysis</div></div><button class="btn ba bsm" onclick="doExport(\'engine\')">EXPORT</button></div>'+
+    '<div class="expcrd"><div><div class="expcrd-t">Propeller Logbook</div><div class="expcrd-s">Prop MX history &middot; TBO</div></div><button class="btn ba bsm" onclick="doExport(\'propeller\')">EXPORT</button></div>'+
+    '<div class="expcrd"><div><div class="expcrd-t">Expense Report</div><div class="expcrd-s">All parts &amp; labor</div></div><button class="btn bp bsm" onclick="doExport(\'expenses\')">EXPORT</button></div>'+
+    '<div class="expcrd"><div><div class="expcrd-t">Document Index</div><div class="expcrd-s">All docs with Drive links</div></div><button class="btn ba bsm" onclick="doExport(\'documents\')">EXPORT</button></div>'+
+    '<div class="expcrd"><div><div class="expcrd-t">Full Export</div><div class="expcrd-s">Everything in one file</div></div><button class="btn bg bsm" onclick="doExport(\'full\')">EXPORT ALL</button></div>';
+}
+function renderDocs(){
+  var pe=document.getElementById('doc-pills'),le=document.getElementById('doc-list');if(!pe||!le)return;
+  var docs=D.docs||[],ph='';
+  for(var pi=0;pi<DOC_CATS.length;pi++){var dc=DOC_CATS[pi],cnt=0;if(dc.id==='All')cnt=docs.length;else{for(var di=0;di<docs.length;di++)if(docs[di].cat===dc.id)cnt++;}
+    ph+='<div class="pill'+(dc.id===activeDocCat?' on':'')+'" onclick="setDocCat(\''+dc.id+'\')">'+dc.label+(cnt>0?' ('+cnt+')':'')+'</div>';}
+  pe.innerHTML=ph;
+  var filtered=[];for(var fi=0;fi<docs.length;fi++){if(activeDocCat==='All'||docs[fi].cat===activeDocCat)filtered.push(docs[fi]);}
+  if(!filtered.length){le.innerHTML='<div style="color:var(--muted);text-align:center;padding:32px 0;font-size:12px">NO DOCUMENTS YET'+(activeDocCat!=='All'?' IN THIS CATEGORY':'')+'</div>';return;}
+  var lh='';
+  for(var li=0;li<filtered.length;li++){var d=filtered[li],dc2=findDocCat(d.cat),hasLink=d.url&&d.url.trim().length>0;
+    lh+='<div class="doccard"><span class="catbadge '+dc2.cls+'">'+dc2.label+'</span>'+
+      '<div class="doctitle">'+(d.title||'Untitled')+'</div><div class="docmeta">'+fmtd(d.date)+(d.tach?' &middot; '+fmtn(d.tach)+' hrs':'')+'</div>'+
+      (d.notes?'<div class="docnotes">'+d.notes+'</div>':'')+
+      '<div class="docact">'+(hasLink?'<a href="'+d.url+'" target="_blank" class="doclink">OPEN IN DRIVE</a>':'<span class="doclink doclink-dis">NO LINK</span>')+
+      '<button class="deledit" style="color:var(--accent)" onclick="openEditDoc(\''+d.id+'\')">EDIT</button>'+
+      '<button class="deledit" style="color:var(--red);margin-left:auto" onclick="delDoc(\''+d.id+'\')">REMOVE</button>'+
+      '</div></div>';
+  }
+  le.innerHTML=lh;
+}
+function setDocCat(c){activeDocCat=c;renderDocs();}
+function renderAll(){renderDash();renderMx();renderEquip();renderOilPanel();renderExpPanel();renderHistPanel();renderExportPanel();renderDocs();}
+function openFlightModal(){
+  document.getElementById('ff-date').value=today();
+  ['ff-tach','ff-from','ff-to','ff-notes'].forEach(function(id){document.getElementById(id).value='';});
+  openModal('m-flight');
+}
+function saveFlight(){
+  var tach=parseFloat(document.getElementById('ff-tach').value);
+  if(isNaN(tach)||tach<D.tt){showToast('TACH MUST BE >= '+fmtn(D.tt),'var(--red)');return;}
+  D.flights.unshift({id:Date.now(),date:document.getElementById('ff-date').value,from:document.getElementById('ff-from').value.toUpperCase(),to:document.getElementById('ff-to').value.toUpperCase(),tach:tach,notes:document.getElementById('ff-notes').value});
+  D.et+=tach-D.tt;D.tt=tach;save();closeModal('m-flight');renderAll();showToast('FLIGHT LOGGED','var(--green)');
+}
+function saveLanding(){
+  var tach=parseFloat(document.getElementById('land-tach').value);
+  if(isNaN(tach)||tach<D.tt){showToast('INVALID TACH','var(--red)');return;}
+  D.flights.unshift({id:Date.now(),date:today(),from:'--',to:'--',tach:tach,notes:'Auto-detected landing'});
+  D.et+=tach-D.tt;D.tt=tach;save();closeModal('m-land');renderAll();showToast('TACH LOGGED','var(--green)');
+}
+function openMxModal(id){
+  activeMxId=id;var item=findMxi(id);
+  document.getElementById('mx-mtitle').textContent=item?item.name.toUpperCase():'LOG MAINTENANCE';
+  document.getElementById('mx-mdesc').textContent=item?item.desc:'';
+  document.getElementById('mx-mdate').value=today();document.getElementById('mx-mtach').value=fmtn(D.tt);
+  ['mx-map','mx-mnotes','mx-mparts','mx-mlabor','mx-mvendor'].forEach(function(id){document.getElementById(id).value='';});
+  openModal('m-mx');
+}
+function saveMx(){
+  var tach=parseFloat(document.getElementById('mx-mtach').value);
+  if(isNaN(tach)){showToast('ENTER TACH TIME','var(--red)');return;}
+  var date=document.getElementById('mx-mdate').value;
+  D.lastMx[activeMxId]={hrs:tach,date:date};
+  D.mxLog.unshift({id:Date.now(),itemId:activeMxId,date:date,tach:tach,ap:document.getElementById('mx-map').value,notes:document.getElementById('mx-mnotes').value,parts:parseFloat(document.getElementById('mx-mparts').value)||0,labor:parseFloat(document.getElementById('mx-mlabor').value)||0,vendor:document.getElementById('mx-mvendor').value});
+  save();closeModal('m-mx');renderAll();showToast('MAINTENANCE LOGGED','var(--green)');
+}
+function openOilModal(){document.getElementById('oil-date').value=today();document.getElementById('oil-tach').value=fmtn(D.tt);document.getElementById('oil-notes').value='';openModal('m-oil');}
+function saveOil(){D.oil.unshift({id:Date.now(),date:document.getElementById('oil-date').value,tach:parseFloat(document.getElementById('oil-tach').value)||null,notes:document.getElementById('oil-notes').value});save();closeModal('m-oil');renderAll();showToast('OIL ANALYSIS SAVED','var(--green)');}
+function openEquipModal(){['eq-name','eq-part','eq-serial','eq-loc','eq-notes'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('eq-status').value='installed';document.getElementById('eq-cat').value='Avionics';openModal('m-equip');}
+function saveEquip(){var name=document.getElementById('eq-name').value.trim();if(!name){showToast('ENTER ITEM NAME','var(--red)');return;}D.equipment.push({id:'eq_'+Date.now(),name:name,partNum:document.getElementById('eq-part').value,serialNum:document.getElementById('eq-serial').value,location:document.getElementById('eq-loc').value,status:document.getElementById('eq-status').value,cat:document.getElementById('eq-cat').value,notes:document.getElementById('eq-notes').value});save();closeModal('m-equip');renderAll();showToast('EQUIPMENT SAVED','var(--green)');}
+function delEquip(id){var ne=[];for(var i=0;i<D.equipment.length;i++){if(D.equipment[i].id!==id)ne.push(D.equipment[i]);}D.equipment=ne;save();renderAll();}
+function openExpenseModal(){document.getElementById('exp-date').value=today();document.getElementById('exp-tach').value=fmtn(D.tt);['exp-desc','exp-parts','exp-labor','exp-vendor','exp-notes'].forEach(function(id){document.getElementById(id).value='';});openModal('m-expense');}
+function saveExpense(){var desc=document.getElementById('exp-desc').value.trim();if(!desc){showToast('ENTER DESCRIPTION','var(--red)');return;}D.expenses.unshift({id:'exp_'+Date.now(),date:document.getElementById('exp-date').value,desc:desc,cat:document.getElementById('exp-cat').value,section:document.getElementById('exp-section').value,parts:parseFloat(document.getElementById('exp-parts').value)||0,labor:parseFloat(document.getElementById('exp-labor').value)||0,vendor:document.getElementById('exp-vendor').value,tach:parseFloat(document.getElementById('exp-tach').value)||null,notes:document.getElementById('exp-notes').value});save();closeModal('m-expense');setLTab('exp');renderAll();showToast('EXPENSE SAVED','var(--green)');}
+function delExpense(id){var ne=[];for(var i=0;i<D.expenses.length;i++){if(D.expenses[i].id!==id)ne.push(D.expenses[i]);}D.expenses=ne;save();renderAll();}
+function openDocModal(){editDocId=null;document.getElementById('doc-mtitle').textContent='ADD DOCUMENT';['doc-title','doc-url','doc-tach','doc-notes'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('doc-cat').value='Annual';document.getElementById('doc-date').value=today();openModal('m-doc');}
+function openEditDoc(id){var docs=D.docs||[],found=null;for(var i=0;i<docs.length;i++){if(docs[i].id===id){found=docs[i];break;}}if(!found)return;editDocId=id;document.getElementById('doc-mtitle').textContent='EDIT DOCUMENT';document.getElementById('doc-title').value=found.title||'';document.getElementById('doc-cat').value=found.cat||'Annual';document.getElementById('doc-date').value=found.date||today();document.getElementById('doc-url').value=found.url||'';document.getElementById('doc-tach').value=found.tach?fmtn(found.tach):'';document.getElementById('doc-notes').value=found.notes||'';openModal('m-doc');}
+function saveDoc(){var title=document.getElementById('doc-title').value.trim();if(!title){showToast('ENTER A TITLE','var(--red)');return;}if(!D.docs)D.docs=[];var entry={id:editDocId||('doc_'+Date.now()),title:title,cat:document.getElementById('doc-cat').value,date:document.getElementById('doc-date').value,url:document.getElementById('doc-url').value.trim(),tach:parseFloat(document.getElementById('doc-tach').value)||null,notes:document.getElementById('doc-notes').value.trim()};if(editDocId){for(var i=0;i<D.docs.length;i++){if(D.docs[i].id===editDocId){D.docs[i]=entry;break;}}}else{D.docs.unshift(entry);}save();closeModal('m-doc');renderDocs();showToast('DOCUMENT SAVED','var(--green)');}
+function delDoc(id){var nd=[];for(var i=0;i<D.docs.length;i++){if(D.docs[i].id!==id)nd.push(D.docs[i]);}D.docs=nd;save();renderDocs();}
+function openSettings(){var a=D.ac;document.getElementById('s-reg').value=a.reg||'';document.getElementById('s-year').value=a.year||'1968';document.getElementById('s-model').value=a.model||'182L';document.getElementById('s-serial').value=a.serial||'';document.getElementById('s-engser').value=a.engSerial||'';document.getElementById('s-propser').value=a.propSerial||'';document.getElementById('s-tt').value=D.tt||'';document.getElementById('s-et').value=D.et||'';document.getElementById('s-pt').value=D.pt||'';document.getElementById('s-apikey').value=(D.sync&&D.sync.apiKey)?D.sync.apiKey:'';document.getElementById('s-binid').value=(D.sync&&D.sync.binId)?D.sync.binId:'';openModal('m-settings');}
+function saveSettings(){D.ac={reg:document.getElementById('s-reg').value.toUpperCase(),year:document.getElementById('s-year').value,model:document.getElementById('s-model').value,serial:document.getElementById('s-serial').value,engSerial:document.getElementById('s-engser').value,propSerial:document.getElementById('s-propser').value};D.tt=parseFloat(document.getElementById('s-tt').value)||D.tt;D.et=parseFloat(document.getElementById('s-et').value)||D.et;D.pt=parseFloat(document.getElementById('s-pt').value)||D.pt;D.sync={apiKey:document.getElementById('s-apikey').value.trim(),binId:document.getElementById('s-binid').value.trim()};save();closeModal('m-settings');renderAll();showToast('SETTINGS SAVED','var(--green)');}
+function csvEsc(v){if(v===null||v===undefined)return'';var s=String(v);if(s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)return'"'+s.replace(/"/g,'""')+'"';return s;}
+function rowsToCsv(rows){var lines=[];for(var i=0;i<rows.length;i++){var cells=[];for(var j=0;j<rows[i].length;j++)cells.push(csvEsc(rows[i][j]));lines.push(cells.join(','));}return lines.join('\r\n');}
+function dlCsv(fn,csv){var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=fn;a.click();URL.revokeObjectURL(url);}
+function doExport(type){
+  var ac=D.ac,reg=ac.reg||'N-XXXX';
+  var acHdr=[['FLIGHTLOG 182 - ELECTRONIC LOGBOOK'],['Generated:',new Date().toLocaleDateString(),'Aircraft:',(ac.year||'')+' Cessna '+(ac.model||'')+' N-'+reg],['Airframe S/N:',ac.serial||'','Engine S/N:',ac.engSerial||'','Prop S/N:',ac.propSerial||''],['Airframe TT:',fmtn(D.tt),'Engine SMOH:',fmtn(D.et),'Prop SPOH:',fmtn(D.pt)],[]];
+  var mxN=[];for(var i=0;i<D.mxLog.length;i++){var m=D.mxLog[i],mi=findMxi(m.itemId);mxN.push({date:m.date,tach:fmtn(m.tach),name:mi?mi.name:m.itemId,cat:mi?mi.cat:'',ap:m.ap||'',notes:m.notes||'',parts:m.parts||0,labor:m.labor||0,vendor:m.vendor||''});}
+  var rows=[],fn='';
+  if(type==='airframe'||type==='full'){
+    rows=rows.concat(acHdr,[['--- FLIGHT LOG ---'],['Date','From','To','Tach Hours','Notes']]);
+    for(var fi=0;fi<D.flights.length;fi++){var f=D.flights[fi];rows.push([f.date,f.from||'',f.to||'',fmtn(f.tach),f.notes||'']);}
+    rows.push([],['--- AIRFRAME MAINTENANCE ---'],['Date','Tach','Item','A&P/IA','Notes','Parts $','Labor $','Vendor']);
+    for(var ai=0;ai<mxN.length;ai++){if(mxN[ai].cat==='AIRFRAME')rows.push([mxN[ai].date,mxN[ai].tach,mxN[ai].name,mxN[ai].ap,mxN[ai].notes,mxN[ai].parts,mxN[ai].labor,mxN[ai].vendor]);}
+    rows.push([],['--- EQUIPMENT ---'],['Name','Part Number','Serial Number','Category','Status','Location','Notes']);
+    for(var ei2=0;ei2<D.equipment.length;ei2++){var eq2=D.equipment[ei2];rows.push([eq2.name,eq2.partNum||'',eq2.serialNum||'',eq2.cat,eq2.status,eq2.location||'',eq2.notes||'']);}
+  }
+  if(type==='engine'||type==='full'){
+    if(type==='full')rows.push([],[' ===ENGINE==='],[]); else rows=rows.concat(acHdr);
+    rows.push(['--- ENGINE MAINTENANCE ---'],['Date','Tach','Item','A&P/IA','Notes','Parts $','Labor $','Vendor']);
+    for(var eni=0;eni<mxN.length;eni++){if(mxN[eni].cat==='ENGINE')rows.push([mxN[eni].date,mxN[eni].tach,mxN[eni].name,mxN[eni].ap,mxN[eni].notes,mxN[eni].parts,mxN[eni].labor,mxN[eni].vendor]);}
+    rows.push([],['--- OIL ANALYSIS ---'],['Date','Tach Hours','Notes/Results']);
+    for(var oi2=0;oi2<D.oil.length;oi2++){var o2=D.oil[oi2];rows.push([o2.date,o2.tach?fmtn(o2.tach):'',o2.notes||'']);}
+  }
+  if(type==='propeller'||type==='full'){
+    if(type==='full')rows.push([],[' ===PROPELLER==='],[]); else rows=rows.concat(acHdr);
+    rows.push(['--- PROPELLER MAINTENANCE ---'],['Date','Tach','Item','A&P/IA','Notes','Parts $','Labor $','Vendor']);
+    for(var pri=0;pri<mxN.length;pri++){if(mxN[pri].cat==='PROPELLER')rows.push([mxN[pri].date,mxN[pri].tach,mxN[pri].name,mxN[pri].ap,mxN[pri].notes,mxN[pri].parts,mxN[pri].labor,mxN[pri].vendor]);}
+  }
+  if(type==='expenses'||type==='full'){
+    if(type==='full')rows.push([],[' ===EXPENSES==='],[]); else rows=rows.concat(acHdr);
+    var mxExp2=[];for(var mi2=0;mi2<D.mxLog.length;mi2++){var mx2=D.mxLog[mi2];if((mx2.parts||0)+(mx2.labor||0)>0){var mxi2=findMxi(mx2.itemId);mxExp2.push({date:mx2.date,desc:mxi2?mxi2.name:mx2.itemId,cat:'Maintenance',section:mxi2?mxi2.cat:'',parts:mx2.parts||0,labor:mx2.labor||0,vendor:mx2.vendor||mx2.ap||'',tach:mx2.tach,notes:mx2.notes||'',isMx:true});}}
+    var allExp2=D.expenses.concat(mxExp2);allExp2.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    var tP2=0,tL2=0;for(var xi=0;xi<allExp2.length;xi++){tP2+=parseFloat(allExp2[xi].parts)||0;tL2+=parseFloat(allExp2[xi].labor)||0;}
+    rows.push(['--- EXPENSES ---'],['Date','Description','Category','Section','Parts $','Labor $','Total $','Vendor','Tach','Notes']);
+    for(var xi2=0;xi2<allExp2.length;xi2++){var ex=allExp2[xi2];rows.push([ex.date,ex.desc,ex.cat||'',ex.section||'',parseFloat(ex.parts)||0,parseFloat(ex.labor)||0,(parseFloat(ex.parts)||0)+(parseFloat(ex.labor)||0),ex.vendor||'',ex.tach?fmtn(ex.tach):'',ex.notes||'']);}
+    rows.push([],['TOTALS','','','',tP2.toFixed(2),tL2.toFixed(2),(tP2+tL2).toFixed(2)]);
+  }
+  if(type==='documents'||type==='full'){
+    if(type==='full')rows.push([],[' ===DOCUMENTS==='],[]); else rows=rows.concat(acHdr);
+    rows.push(['--- DOCUMENT INDEX ---'],['Date','Title','Category','Tach','Google Drive Link','Notes']);
+    var docs2=D.docs||[];for(var dxi=0;dxi<docs2.length;dxi++){var dx=docs2[dxi];rows.push([dx.date,dx.title||'',dx.cat||'',dx.tach?fmtn(dx.tach):'',dx.url||'',dx.notes||'']);}
+  }
+  if(type==='full'){fn='FlightLog182_'+reg+'_FULL_'+today()+'.csv';}
+  else{fn='FlightLog182_'+reg+'_'+type+'_'+today()+'.csv';}
+  dlCsv(fn,rowsToCsv(rows));
+  showToast('CSV DOWNLOADED','var(--green)');
+}
+function startGPS(){
+  if(!('geolocation' in navigator))return;
+  navigator.geolocation.watchPosition(function(pos){
+    var kts=(pos.coords.speed||0)*1.944;
+    if(kts>30&&!flyingState){flyingState=true;if(landingTimer){clearTimeout(landingTimer);landingTimer=null;}}
+    if(kts<10&&flyingState){flyingState=false;landingTimer=setTimeout(function(){document.getElementById('land-tach').value='';openModal('m-land');},600000);}
+  },null,{enableHighAccuracy:true,maximumAge:5000,timeout:10000});
+}
+// INIT
+try {
+  document.getElementById('hdr-sub').textContent = 'STEP 1: defData...';
+  D = loadLocal() || defData();
+  document.getElementById('hdr-sub').textContent = 'STEP 2: renderAll...';
+  renderAll();
+  document.getElementById('hdr-sub').textContent = 'STEP 3: GPS...';
+  startGPS();
+  document.getElementById('hdr-sub').textContent = 'PART 91 · ' + (D.ac.reg||'N-XXXX') + ' · ' + fmtn(D.tt) + ' HRS TT';
+} catch(e) {
+  document.getElementById('hdr-sub').textContent = 'ERROR: ' + e.message;
+  document.getElementById('dash-flights').innerHTML = '<div style="background:red;color:#fff;padding:16px;font-size:13px;border-radius:8px"><b>CRASH:</b> ' + e.message + '<br><b>Stack:</b> ' + (e.stack||'none') + '</div>';
+}
+</script>
+</body>
+</html>
